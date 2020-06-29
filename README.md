@@ -7,5 +7,5 @@
 - Clone this repo
 - Open command on the repo directory
 - Run `dotnet run`
-- Enter username and password of your Bitbucket (I don't storage any data, all in your local machine)
+- Enter username and password of your Bitbucket (All information in your local machine)
 - Drink a cup of coffee and enjoy the result...
