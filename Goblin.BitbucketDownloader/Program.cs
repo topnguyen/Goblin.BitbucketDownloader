@@ -182,8 +182,10 @@ namespace Goblin.BitbucketDownloader
 
             if (repoFolderInfo.Exists)
             {
-                Console.WriteLine($"{i + 1}. [{stopWatch.Elapsed.TotalSeconds} s] [Skipped] [{branches.Count()} Branches] {repoLink} > {repoFolder}");
+                stopWatch.Stop();
 
+                Console.WriteLine($"{i + 1}. [{stopWatch.Elapsed.TotalSeconds} s] [Skipped] [{branches.Count()} Branches] {repoLink} > {repoFolder}");
+                
                 return;
             }
 
@@ -199,6 +201,8 @@ namespace Goblin.BitbucketDownloader
                 var pulledBranch = repo.Branches.Update(pullBranch,
                     b => { b.TrackedBranch = branch.CanonicalName; });
             }
+            
+            stopWatch.Stop();
             
             Console.WriteLine($"{i + 1}. [{stopWatch.Elapsed.TotalSeconds} s] [{branches.Count()} Branches] {repoLink} > {repoFolder}");
         }
