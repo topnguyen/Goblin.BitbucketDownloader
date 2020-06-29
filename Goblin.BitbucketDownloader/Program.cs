@@ -92,24 +92,7 @@ namespace Goblin.BitbucketDownloader
 
             for (int i = 0; i < listRepositories.Count; i++)
             {
-                var tasks = new List<Task>();
-
-                for (int j = 0; j < 100; j++)
-                {
-                    var index = i;
-                    
-                    var task = Task.Run(() =>
-                    {
-                        CloneAndPullRepo(index, listRepositories, userName, password);
-                    });
-                    
-                    tasks.Add(task);
-
-                    i++;
-                }
-
-                await Task.WhenAll(tasks).ConfigureAwait(true);
-
+                CloneAndPullRepo(i, listRepositories, userName, password);
             }
 
             Console.WriteLine();
@@ -149,11 +132,6 @@ namespace Goblin.BitbucketDownloader
 
         private static void CloneAndPullRepo(int i, List<RepositoryModel> listRepositories, string userName, string password)
         {
-            if (i >= listRepositories.Count)
-            {
-                return;
-            }
-
             var stopWatch = Stopwatch.StartNew();
           
             var repoModel = listRepositories[i];
@@ -164,6 +142,8 @@ namespace Goblin.BitbucketDownloader
                 
             var repoFolderInfo = new DirectoryInfo(repoFolder);
             
+            Console.Write($"{i + 1}. {repoLink} > {repoFolder}");
+
             if (!repoFolderInfo.Exists)
             {
                 Repository.Clone(repoLink, repoFolder, new CloneOptions
@@ -184,7 +164,7 @@ namespace Goblin.BitbucketDownloader
             {
                 stopWatch.Stop();
 
-                Console.WriteLine($"{i + 1}. [{stopWatch.Elapsed.TotalSeconds} s] [Skipped] [{branches.Count()} Branches] {repoLink} > {repoFolder}");
+                Console.WriteLine($"[{branches.Count()} Branches] [{stopWatch.Elapsed.TotalSeconds} s] [Skipped]");
                 
                 return;
             }
@@ -204,7 +184,7 @@ namespace Goblin.BitbucketDownloader
             
             stopWatch.Stop();
             
-            Console.WriteLine($"{i + 1}. [{stopWatch.Elapsed.TotalSeconds} s] [{branches.Count()} Branches] {repoLink} > {repoFolder}");
+            Console.WriteLine($"[{branches.Count()} Branches] [{stopWatch.Elapsed.TotalSeconds} s]");
         }
     }
 }
