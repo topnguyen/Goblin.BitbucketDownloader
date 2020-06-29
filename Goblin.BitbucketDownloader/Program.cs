@@ -12,11 +12,10 @@ namespace Goblin.BitbucketDownloader
 {
     internal static class Program
     {
+        public static string RepoBaseFolder = "Repositories";
+        
         static async Task Main(string[] args)
         {
-            var stopWatch = new Stopwatch();
-            var stopWatchGlobal = new Stopwatch();
-
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Welcome to Goblin Bitbucket Downloader!");
             Console.WriteLine("- Clone and Pull all remote Branches");
@@ -58,8 +57,9 @@ namespace Goblin.BitbucketDownloader
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Get repositories information...");
-            stopWatch.Start();
-            stopWatchGlobal.Start();
+           
+            var stopWatch = Stopwatch.StartNew();
+            var stopWatchGlobal = Stopwatch.StartNew();
 
             var url = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100";
 
@@ -74,7 +74,7 @@ namespace Goblin.BitbucketDownloader
             catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine($"[Error][{stopWatch.ElapsedMilliseconds} ms]: {e.Message}");
+                Console.WriteLine($"[Error][{stopWatchGlobal.Elapsed.TotalSeconds} s]: {e.Message}");
 
                 Console.ResetColor();
                 Console.WriteLine("Press any key to exit...");
@@ -83,37 +83,40 @@ namespace Goblin.BitbucketDownloader
             }
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[Success][{stopWatch.ElapsedMilliseconds} ms] {listRepositories.Count} repo found!");
+            Console.WriteLine($"[Success][{stopWatchGlobal.Elapsed.TotalSeconds} s] {listRepositories.Count} repo found!");
+
+            stopWatch.Stop();
 
             Console.ResetColor();
             Console.WriteLine("Start to clone repo...");
 
-            var repoBaseFolder = "Repositories";
-
             for (int i = 0; i < listRepositories.Count; i++)
             {
-                stopWatch.Restart();
+                var tasks = new List<Task>();
 
-                var repo = listRepositories[i];
-                var repoLink = repo.links.clone.FirstOrDefault()?.href;
-                var repoFolder = Path.Combine(repoBaseFolder, repo.full_name);
-                
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write($"{i + 1}. ");
-                Console.ResetColor();
+                for (int j = 0; j < 100; j++)
+                {
+                    var index = i;
+                    
+                    var task = Task.Run(() =>
+                    {
+                        CloneAndPullRepo(index, listRepositories, userName, password);
+                    });
+                    
+                    tasks.Add(task);
 
-                Console.Write($"{repoLink} > {repoFolder}");
+                    i++;
+                }
 
-                CloneAndPullRepo(repoLink, repoFolder, userName, password);
+                await Task.WhenAll(tasks).ConfigureAwait(true);
 
-                Console.WriteLine($"[{stopWatch.ElapsedMilliseconds} ms]");
             }
 
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[{stopWatchGlobal.Elapsed.TotalSeconds} m] Finish clone all repositories.");
-            stopWatch.Stop();
+            Console.WriteLine($"[{stopWatchGlobal.Elapsed.TotalMinutes} m] Finish clone all repositories.");
+            stopWatchGlobal.Stop();
 
             Console.ResetColor();
             Console.WriteLine("Press any key to exit...");
@@ -144,8 +147,21 @@ namespace Goblin.BitbucketDownloader
             return repositories;
         }
 
-        private static void CloneAndPullRepo(string repoLink, string repoFolder, string userName, string password)
+        private static void CloneAndPullRepo(int i, List<RepositoryModel> listRepositories, string userName, string password)
         {
+            if (i >= listRepositories.Count)
+            {
+                return;
+            }
+
+            var stopWatch = Stopwatch.StartNew();
+          
+            var repoModel = listRepositories[i];
+            
+            var repoLink = repoModel.links.clone.FirstOrDefault()?.href;
+            
+            var repoFolder = Path.Combine(RepoBaseFolder, repoModel.full_name);
+                
             var repoFolderInfo = new DirectoryInfo(repoFolder);
             
             if (!repoFolderInfo.Exists)
@@ -159,16 +175,14 @@ namespace Goblin.BitbucketDownloader
                     }
                 });
             }
-  
+            
             var repo = new Repository(repoFolder);
 
             var branches = repo.Branches;
 
-            Console.Write($"[{branches.Count()} Branches]");
-
             if (repoFolderInfo.Exists)
             {
-                Console.Write("[Repo Exists -> Skipped]");
+                Console.WriteLine($"[{stopWatch.Elapsed.TotalSeconds} s] [Skipped] [{branches.Count()} Branches] {i + 1}. {repoLink} > {repoFolder}");
 
                 return;
             }
@@ -185,6 +199,8 @@ namespace Goblin.BitbucketDownloader
                 var pulledBranch = repo.Branches.Update(pullBranch,
                     b => { b.TrackedBranch = branch.CanonicalName; });
             }
+            
+            Console.WriteLine($"[{stopWatch.Elapsed.TotalSeconds} s] [{branches.Count()} Branches] {i + 1}. {repoLink} > {repoFolder}");
         }
     }
 }
