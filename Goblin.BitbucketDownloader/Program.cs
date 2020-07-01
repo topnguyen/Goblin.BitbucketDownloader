@@ -92,7 +92,18 @@ namespace Goblin.BitbucketDownloader
 
             for (int i = 0; i < listRepositories.Count; i++)
             {
-                CloneAndPullRepo(i, listRepositories, userName, password);
+                try
+                {
+                    CloneAndPullRepo(i, listRepositories, userName, password);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine($"[Error][Skipped and Continue]: {e.Message}");
+                    Console.ResetColor();
+                }
             }
 
             Console.WriteLine();
@@ -141,8 +152,12 @@ namespace Goblin.BitbucketDownloader
             var repoFolder = Path.Combine(RepoBaseFolder, repoModel.full_name);
                 
             var repoFolderInfo = new DirectoryInfo(repoFolder);
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"{i + 1}.");
+            Console.ResetColor();
             
-            Console.Write($"{i + 1}. {repoLink} > {repoFolder}");
+            Console.WriteLine($" {repoLink} > {repoFolder}");
 
             if (!repoFolderInfo.Exists)
             {
@@ -164,7 +179,14 @@ namespace Goblin.BitbucketDownloader
             {
                 stopWatch.Stop();
 
-                Console.WriteLine($"[{branches.Count()} Branches] [{stopWatch.Elapsed.TotalSeconds} s] [Skipped]");
+                Console.Write($"[{branches.Count()} Branches]");
+                
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write($" [{stopWatch.Elapsed.TotalSeconds} s]");
+
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine(" [Skipped]");
+                Console.ResetColor();
                 
                 return;
             }
@@ -184,7 +206,14 @@ namespace Goblin.BitbucketDownloader
             
             stopWatch.Stop();
             
-            Console.WriteLine($"[{branches.Count()} Branches] [{stopWatch.Elapsed.TotalSeconds} s]");
+            stopWatch.Stop();
+
+            Console.Write($"[{branches.Count()} Branches]");
+                
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($" [{stopWatch.Elapsed.TotalSeconds} s]");
+
+            Console.ResetColor();
         }
     }
 }
