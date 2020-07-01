@@ -61,12 +61,12 @@ namespace Goblin.BitbucketDownloader
             var stopWatch = Stopwatch.StartNew();
             var stopWatchGlobal = Stopwatch.StartNew();
 
-            var url = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100";
-
             var listRepositories = new List<RepositoryModel>();
 
             try
             {
+                var url = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100&sort=-updated_on";
+
                 listRepositories =
                     await GetRepositoriesAsync(url, userName, password)
                         .ConfigureAwait(true);
