@@ -65,7 +65,7 @@ namespace Goblin.BitbucketDownloader
 
             try
             {
-                var url = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100&sort=-updated_on";
+                var url = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100"; // &sort=-updated_on
 
                 listRepositories =
                     await GetRepositoriesAsync(url, userName, password)
