@@ -101,7 +101,7 @@ namespace Goblin.BitbucketDownloader
                     Console.WriteLine(e);
                     
                     Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine($"[Error][Skipped and Continue]: {e.Message}");
+                    Console.WriteLine($"[Error] [Skipped and Continue]: {e.Message}");
                     Console.ResetColor();
                 }
             }
@@ -157,7 +157,7 @@ namespace Goblin.BitbucketDownloader
             Console.Write($"{i + 1}.");
             Console.ResetColor();
             
-            Console.WriteLine($" {repoLink} > {repoFolder}");
+            Console.Write($" {repoLink} > {repoFolder}");
 
             if (!repoFolderInfo.Exists)
             {
@@ -211,7 +211,7 @@ namespace Goblin.BitbucketDownloader
             Console.Write($"[{branches.Count()} Branches]");
                 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($" [{stopWatch.Elapsed.TotalSeconds} s]");
+            Console.WriteLine($" [{stopWatch.Elapsed.TotalSeconds} s]");
 
             Console.ResetColor();
         }
